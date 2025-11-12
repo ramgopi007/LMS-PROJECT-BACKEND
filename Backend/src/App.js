@@ -5,9 +5,12 @@ app.use(express.json());
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 require('dotenv').config();
-const authRoutes = require('../Routes/authRoutes');
+const authRoutes = require('../Routes/authenticationRoutes');
+const instructorRoutes = require('../Routes/instructorRoutes');
 
 app.use('/lms/auth', authRoutes );
+
+app.use('/instructor',instructorRoutes);
 
 // Connect to DB first, then start server
 Db()

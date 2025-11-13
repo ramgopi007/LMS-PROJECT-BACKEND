@@ -4,8 +4,7 @@ const User = require("../models/signUpSchema"); // import your User model
 const instructorAuth = async (req, res, next) => {
   try {
     // 1️⃣ Get token (from cookie or header)
-    const token =
-      req.cookies?.token || req.header("Authorization")?.replace("Bearer ", "");
+    const token = req.cookies.token ;
 
     if (!token) {
       return res.status(401).json({ message: "Access denied. No token provided." });

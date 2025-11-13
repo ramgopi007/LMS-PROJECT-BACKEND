@@ -1,4 +1,4 @@
-const Course = require("../models/Course");
+const Course = require("../../models/signUpSchema");
 
 // 🟩 1️⃣ Create a new course
 const createCourse = async (req, res) => {

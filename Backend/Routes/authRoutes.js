@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
 
-const {signup} = require('../controllers/authentication/signup');
-const {login} = require('../controllers/authentication/login');
-const {logout}  = require('../controllers/authentication/logout');
-const {updateProfile} = require('../controllers/authentication/updateProfile');
-const {authenticate} = require('../middlewares/authenticate');
+const { signup } = require('../controllers/authentication/signup');
+const { login } = require('../controllers/authentication/login');
+const { logout } = require('../controllers/authentication/logout');
+const upload = require('../middlewares/multer');
+const { updateProfile } = require('../controllers/authentication/updateProfile');
+const { authenticate } = require('../middlewares/authenticate');
 
-router.post('/signup',signup);
-router.post('/login',login);
-router.post('/logout',authenticate,logout);
-router.put('/update-profile',authenticate,updateProfile);
+router.post('/signup', signup);
+router.post('/login', login);
+router.post('/logout', authenticate, logout);
+router.put('/update-profile', authenticate, upload.single("profilePicture"), updateProfile);
 
 module.exports = router;

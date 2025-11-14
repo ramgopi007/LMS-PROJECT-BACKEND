@@ -1,12 +1,18 @@
 const express = require('express');
 const router = express.Router();
+const upload = require("../middlewares/multer");
 
-const {instructorAuth} = require('../middlewares/instructorAuth');
-const {createCourse} = require('../controllers/InstructorController/createCourse');
-const {getMyCourses} = require('../controllers/InstructorController/getCourse');
-const {updateCourse} = require('../controllers/InstructorController/updateCourse');
-const {deleteCourse} = require('../controllers/InstructorController/deleteCourse');
-const {addLesson} = require('../controllers/InstructorController/addLesson');
+const { instructorAuth } = require('../middlewares/instructorAuth');
+const { createCourse } = require('../controllers/InstructorController/createCourse');
+const { getMyCourses } = require('../controllers/InstructorController/getCourse');
+const { updateCourse } = require('../controllers/InstructorController/updateCourse');
+const { deleteCourse } = require('../controllers/InstructorController/deleteCourse');
+
+
+const { addLesson } = require("../controllers/InstructorController/addLesson");
+const { updateLesson } = require("../controllers/InstructorController/updateLesson");
+const { deleteLesson } = require("../controllers/InstructorController/deleteLesson");
+const { getLessons } = require("../controllers/InstructorController/getLessons");
 
 // Create new course
 router.post("/courses", instructorAuth, createCourse);
@@ -20,8 +26,17 @@ router.put("/courses/:id", instructorAuth, updateCourse);
 // Delete a course
 router.delete("/courses/:id", instructorAuth, deleteCourse);
 
-//upload the lessons and videos 
-router.post("/courses/:courseId/add-lesson",instructorAuth,upload.single("video"),addLesson);
+// Add lesson with video
+router.post("/:courseId/lessons",instructorAuth,upload.single("lessonVideo"),addLesson);
+
+// Update lesson (optional video)
+router.put("/lessons/:lessonId",instructorAuth,upload.single("lessonVideo"),updateLesson);
+
+// Delete lesson
+router.delete("/lessons/:lessonId",instructorAuth,deleteLesson);
+
+// Get all lessons for a course
+router.get("/:courseId/lessons", getLessons);
 
 module.exports = router;
 

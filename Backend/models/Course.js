@@ -1,24 +1,5 @@
 const mongoose = require("mongoose");
 
-const lessonSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, "Lesson title is required"],
-  },
-  videoUrl: {
-    type: String,
-    required: [true, "Video URL is required (Cloudinary / S3 etc.)"],
-  },
-  duration: {
-    type: Number, // in seconds
-    default: 0,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  }
-});
-
 const courseSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -47,9 +28,6 @@ const courseSchema = new mongoose.Schema({
     required: true,
   },
 
-  // ⭐ Add lessons array
-  lessons: [lessonSchema],
-
   createdAt: {
     type: Date,
     default: Date.now,
@@ -57,3 +35,5 @@ const courseSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model("Course", courseSchema);
+
+

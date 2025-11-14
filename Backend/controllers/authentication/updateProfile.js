@@ -1,31 +1,41 @@
 const bcrypt = require("bcryptjs");
 const User = require("../../models/signUpSchema");
+const cloudinary = require("../../config/cloudinary");
 
 const updateProfile = async (req, res) => {
   try {
-    const userId = req.user.userId; // from middleware (after verifying JWT)
-    const { firstName, lastName, email, password, bio, skills, profilePicture } =
-      req.body;
+    const userId = req.user.userId; 
+    const { firstName, lastName, email, password, bio, skills } = req.body;
 
+    // 1️⃣ Find user
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).send({ message: "User not found." });
     }
 
-    // Update fields
+    // 2️⃣ If image uploaded → upload to Cloudinary
+    if (req.file) {
+      const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
+        folder: "profilePictures",
+      });
+
+      user.profilePicture = uploadedImage.secure_url; // update field
+    }
+
+    // 3️⃣ Update normal fields
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
     if (email) user.email = email;
     if (bio) user.bio = bio;
     if (skills) user.skills = skills;
-    if (profilePicture) user.profilePicture = profilePicture;
 
-    // Update password if provided
+    // 4️⃣ Update password
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       user.password = hashedPassword;
     }
 
+    // 5️⃣ Save
     await user.save();
 
     res.status(200).send({
@@ -42,8 +52,10 @@ const updateProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).send({ message: "Error updating profile", error: error.message });
+    res
+      .status(500)
+      .send({ message: "Error updating profile", error: error.message });
   }
 };
 
-module.exports = {updateProfile};
+module.exports = { updateProfile };

@@ -43,7 +43,7 @@ const signUpSchema = new mongoose.Schema(
     },
     profilePicture: {
       type: String,
-      default: "",
+      default: "https://cdn-icons-png.flaticon.com/512/149/149071.png"
     },
     bio: {
       type: String,

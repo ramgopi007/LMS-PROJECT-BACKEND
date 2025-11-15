@@ -8,7 +8,6 @@ const { getMyCourses } = require('../controllers/InstructorController/getCourse'
 const { updateCourse } = require('../controllers/InstructorController/updateCourse');
 const { deleteCourse } = require('../controllers/InstructorController/deleteCourse');
 
-
 const { addLesson } = require("../controllers/InstructorController/addLesson");
 const { updateLesson } = require("../controllers/InstructorController/updateLesson");
 const { deleteLesson } = require("../controllers/InstructorController/deleteLesson");
@@ -19,7 +18,7 @@ router.post("/courses", instructorAuth, createCourse);
 
 // Get all courses created by the instructor
 router.get("/my-courses", instructorAuth, getMyCourses);
-
+ 
 // Update a course
 router.put("/courses/:id", instructorAuth, updateCourse);
 
@@ -27,7 +26,7 @@ router.put("/courses/:id", instructorAuth, updateCourse);
 router.delete("/courses/:id", instructorAuth, deleteCourse);
 
 // Add lesson with video
-router.post("/:courseId/lessons",instructorAuth,upload.single("lessonVideo"),addLesson);
+router.post("/courses/:courseId/lessons",instructorAuth,upload.single("lessonVideo"),addLesson);
 
 // Update lesson (optional video)
 router.put("/lessons/:lessonId",instructorAuth,upload.single("lessonVideo"),updateLesson);
@@ -36,7 +35,7 @@ router.put("/lessons/:lessonId",instructorAuth,upload.single("lessonVideo"),upda
 router.delete("/lessons/:lessonId",instructorAuth,deleteLesson);
 
 // Get all lessons for a course
-router.get("/:courseId/lessons", getLessons);
+router.get("/courses/:courseId/lessons",instructorAuth, getLessons);
 
 module.exports = router;
 

@@ -10,7 +10,7 @@ const instructorRoutes = require('../Routes/instructorRoutes');
 
 app.use('/lms/auth', authRoutes );
 
-app.use('/instructor',instructorRoutes);
+app.use('/lms/instructor',instructorRoutes);
 
 // Connect to DB first, then start server
 Db()

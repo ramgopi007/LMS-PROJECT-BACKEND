@@ -1,10 +1,13 @@
 const bcrypt = require("bcryptjs");
 const User = require("../../models/signUpSchema");
 const cloudinary = require("../../config/cloudinary");
+const fs = require("fs");
 
 const updateProfile = async (req, res) => {
   try {
-    const userId = req.user.userId; 
+    // ✔ Correct way (matches your authenticate middleware)
+    const userId = req.user.userId;
+
     const { firstName, lastName, email, password, bio, skills } = req.body;
 
     // 1️⃣ Find user
@@ -13,48 +16,57 @@ const updateProfile = async (req, res) => {
       return res.status(404).send({ message: "User not found." });
     }
 
-    // 2️⃣ If image uploaded → upload to Cloudinary
-    if (req.file) {
-      const uploadedImage = await cloudinary.uploader.upload(req.file.path, {
-        folder: "profilePictures",
-      });
 
-      user.profilePicture = uploadedImage.secure_url; // update field
+    // 2️⃣ Email update (check duplicates)
+    if (email && email !== user.email) {
+      const emailExists = await User.findOne({ email });
+      if (emailExists) {
+        return res.status(400).send({ message: "Email already in use." });
+      }
+      user.email = email;
     }
 
-    // 3️⃣ Update normal fields
+    // 3️⃣ Update basic fields
     if (firstName) user.firstName = firstName;
     if (lastName) user.lastName = lastName;
-    if (email) user.email = email;
     if (bio) user.bio = bio;
-    if (skills) user.skills = skills;
 
-    // 4️⃣ Update password
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      user.password = hashedPassword;
+    // 4️⃣ Format skills properly
+    if (skills) {
+      user.skills = Array.isArray(skills)
+        ? skills
+        : skills.split(",").map((s) => s.trim());
     }
 
-    // 5️⃣ Save
-    await user.save();
+    // 5️⃣ Update password (if provided)
+    if (password) {
+      user.password = await bcrypt.hash(password, 10);
+    }
 
+    // 6️⃣ Save user
+    const updatedUser = await user.save();
+
+    // 7️⃣ Send safe response
     res.status(200).send({
       message: "Profile updated successfully.",
       user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        bio: user.bio,
-        skills: user.skills,
-        profilePicture: user.profilePicture,
+        id: updatedUser._id,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        bio: updatedUser.bio,
+        skills: updatedUser.skills,
+        profilePicture: updatedUser.profilePicture,
       },
     });
+
   } catch (error) {
-    res
-      .status(500)
-      .send({ message: "Error updating profile", error: error.message });
+    console.error("Update Profile Error:", error);
+    res.status(500).send({
+      message: "Error updating profile",
+      error: error.message,
+    });
   }
 };
 

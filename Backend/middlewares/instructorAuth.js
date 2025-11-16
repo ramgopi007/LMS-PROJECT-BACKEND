@@ -21,7 +21,6 @@ const instructorAuth = async (req, res, next) => {
 
     // 3️⃣ Find user in DB
     const user = await User.findById(decoded.userId);
-    console.log(user);
     
     if (!user) {
       return res.status(404).json({ message: "User not found." });

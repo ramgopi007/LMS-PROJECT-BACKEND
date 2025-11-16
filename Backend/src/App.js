@@ -1,10 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const Db = require('../config/DataBase');
 const app = express();
 app.use(express.json());
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
-require('dotenv').config();
 const authRoutes = require('../Routes/authRoutes');
 const instructorRoutes = require('../Routes/instructorRoutes');
 

@@ -1,41 +1,38 @@
+// config/multer.js
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
-// Allowed file types for image & video
-const FILE_TYPES = {
-  image: ["jpg", "jpeg", "png", "webp"],
-  video: ["mp4", "mov", "avi", "mkv"],
-};
+const uploadsDir = path.resolve(process.cwd(), "uploads");
 
-// Storage (temporary local folder before uploading to Cloudinary)
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // temp folder
-  },
+  destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
-    const uniqueName = Date.now() + path.extname(file.originalname);
-    cb(null, uniqueName);
-  },
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+  }
 });
 
-// File Filter (dynamic based on usage)
 const fileFilter = (req, file, cb) => {
-  const ext = path.extname(file.originalname).toLowerCase().replace(".", "");
+  const allowed = ["mp4", "mov", "avi", "mkv", "jpg", "jpeg", "png"];
 
-  const isImage = FILE_TYPES.image.includes(ext);
-  const isVideo = FILE_TYPES.video.includes(ext);
+  const ext = path.extname(file.originalname).substring(1).toLowerCase();
 
-  if (isImage || isVideo) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only image or video files are allowed!"));
+  if (!allowed.includes(ext)) {
+    return cb(new Error("Only images or video files allowed!"));
   }
+  cb(null, true);
 };
 
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB limit
+  limits: { fileSize: 1000 * 1024 * 1024 }, // 1000MB
   fileFilter,
 });
 
 module.exports = upload;
+module.exports.uploadsDir = uploadsDir;

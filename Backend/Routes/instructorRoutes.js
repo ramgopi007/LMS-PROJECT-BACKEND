@@ -26,7 +26,7 @@ router.put("/courses/:id", instructorAuth, updateCourse);
 router.delete("/courses/:id", instructorAuth, deleteCourse);
 
 // Add lesson with video
-router.post("/courses/:courseId/lessons",instructorAuth,upload.single("lessonVideo"),addLesson);
+router.post("/courses/:courseId/addlessons",instructorAuth,upload.single("lessonVideo"),addLesson);
 
 // Update lesson (optional video)
 router.put("/lessons/:lessonId",instructorAuth,upload.single("lessonVideo"),updateLesson);

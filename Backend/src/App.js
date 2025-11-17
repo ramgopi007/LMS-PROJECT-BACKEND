@@ -7,10 +7,13 @@ const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 const authRoutes = require('../Routes/authRoutes');
 const instructorRoutes = require('../Routes/instructorRoutes');
+const userRoutes = require('../Routes/userRoutes');
 
 app.use('/lms/auth', authRoutes );
 
 app.use('/lms/instructor',instructorRoutes);
+
+app.use('/lms/user',userRoutes);
 
 // Connect to DB first, then start server
 Db()

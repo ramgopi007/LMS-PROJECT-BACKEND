@@ -1,17 +1,18 @@
 const Course = require("../../models/Course");
+const Lesson = require("../../models/Lesson");      // Need Lesson model
+const User = require("../../models/signUpSchema"); // Need User model
+const CourseProgress = require("../../models/progressSchema"); // Assuming you created this model
 
-// 🟥 Delete a course (only course owner can delete)
 const deleteCourse = async (req, res) => {
   try {
     const { id } = req.params; // course ID from URL
 
-    // 1️⃣ Delete only if instructor owns this course
-    const course = await Course.findOneAndDelete({
+    // 1️⃣ Find course
+    const course = await Course.findOne({
       _id: id,
       instructor: req.user._id, // ensures only the creator can delete
     });
 
-    // 2️⃣ If not found (doesn't exist or not instructor's course)
     if (!course) {
       return res.status(404).json({
         success: false,
@@ -19,10 +20,36 @@ const deleteCourse = async (req, res) => {
       });
     }
 
+    // 2️⃣ Bulk Cleanup Operations (CRITICAL)
+    const deleteOps = [
+        // a) Delete all associated Lessons
+        Lesson.deleteMany({ course: id }),
+        // b) Remove course ID from all enrolled students' arrays
+        User.updateMany(
+            { enrolledCourses: id },
+            { $pull: { enrolledCourses: id } }
+        ),
+        // c) Remove course ID from the instructor's createdCourses array
+        User.findByIdAndUpdate(
+            req.user._id,
+            { $pull: { createdCourses: id } }
+        ),
+        // d) Delete all CourseProgress documents related to this course
+        CourseProgress.deleteMany({ course: id }),
+        // e) Finally, delete the course itself
+        Course.findByIdAndDelete(id)
+    ];
+
+    // Execute all cleanup operations in parallel
+    await Promise.all(deleteOps);
+    
+    // Note: Cloudinary video deletion for all lessons should ideally happen here too
+    // but that requires fetching all Lesson publicIds before deletion.
+
     // 3️⃣ If deleted successfully
     res.status(200).json({
       success: true,
-      message: "Course deleted successfully.",
+      message: "Course and all associated data deleted successfully.",
     });
 
   } catch (error) {
@@ -34,5 +61,5 @@ const deleteCourse = async (req, res) => {
     });
   }
 };
- 
-module.exports = {deleteCourse};
+ 
+module.exports = { deleteCourse };

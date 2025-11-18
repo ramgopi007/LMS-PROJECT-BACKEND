@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const validator = require("validator");
+const validator = require("validator"); // Assuming 'validator' is installed and used
 
 const signUpSchema = new mongoose.Schema(
   {
@@ -35,6 +35,7 @@ const signUpSchema = new mongoose.Schema(
         message:
           "Password must include 1 uppercase, 1 lowercase, 1 number, and 1 special character (min 8 chars)",
       },
+      select: false, // Security: Prevents the password from being returned by default in queries
     },
     role: {
       type: String,
@@ -43,7 +44,7 @@ const signUpSchema = new mongoose.Schema(
     },
     profilePicture: {
       type: String,
-      default: "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+      default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
     },
     bio: {
       type: String,
@@ -53,12 +54,44 @@ const signUpSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    // *** LMS-Specific Relationship Fields Added Below ***
+
+    /**
+     * Field to hold courses the user is currently taking (as a student)
+     * This field directly solves your 'StrictPopulateError' for 'enrolledCourses'
+     */
+    enrolledCourses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course", // IMPORTANT: Must match the name of your Course Model
+      },
+    ],
+
+    /**
+     * Field to hold courses the user has created (as an instructor)
+     */
+    createdCourses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course", // IMPORTANT: Must match the name of your Course Model
+      },
+    ],
+
+    // *** Timestamps and Statuses ***
     createdAt: {
       type: Date,
       default: Date.now,
     },
+    active: {
+      type: Boolean,
+      default: true,
+      select: false, // Used for soft deletion/account deactivation
+    },
   },
-
+  {
+    timestamps: true, // Adds 'createdAt' and 'updatedAt' fields automatically
+  }
 );
+// You can remove your manual 'createdAt' field if you use 'timestamps: true'
 
 module.exports = mongoose.model("User", signUpSchema);

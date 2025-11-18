@@ -11,7 +11,7 @@ const updateProfile = async (req, res) => {
     const { firstName, lastName, email, password, bio, skills } = req.body;
 
     // 1️⃣ Find user
-    const user = await User.findById(userId);
+   const user = await User.findById(userId).select('+password');
     if (!user) {
       return res.status(404).send({ message: "User not found." });
     }

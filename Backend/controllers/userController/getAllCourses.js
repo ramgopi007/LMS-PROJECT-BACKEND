@@ -1,4 +1,4 @@
-const Course = require("../models/Course");
+const Course = require("../../models/Course");
 
 /*  1) GET /courses - Return all courses (public) */
 

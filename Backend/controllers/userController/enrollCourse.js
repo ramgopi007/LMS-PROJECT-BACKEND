@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
-const User = require("../models/signUpSchema");
-const Course = require("../models/Course");
+const User = require("../../models/signUpSchema");
+const Course = require("../../models/Course");
+const CourseProgress = require("../../models/progressSchema"); // Assuming you created this model
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -12,27 +13,44 @@ const enrollCourse = async (req, res) => {
     if (!isValidObjectId(courseId))
       return res.status(400).json({ success: false, message: "Invalid course id." });
 
-    const course = await Course.findById(courseId);
+    const [user, course] = await Promise.all([
+      User.findById(userId),
+      Course.findById(courseId)
+    ]);
+
     if (!course) return res.status(404).json({ success: false, message: "Course not found." });
-
-    const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: "User not found." });
+    
+    // Check if already enrolled (Check both arrays for safety/consistency)
+    const alreadyEnrolled = 
+        user.enrolledCourses.some((c) => c.toString() === courseId) ||
+        course.studentsEnrolled.some((u) => u.toString() === userId);
 
-    // ensure enrolledCourses exists
-    if (!Array.isArray(user.enrolledCourses)) user.enrolledCourses = [];
+    if (alreadyEnrolled) 
+        return res.status(400).json({ success: false, message: "Already enrolled in this course." });
 
-    // check already enrolled
-    const already = user.enrolledCourses.some((c) => c.toString() === courseId);
-    if (already) return res.status(400).json({ success: false, message: "Already enrolled." });
+    // 🌟 New: Perform updates in parallel
+    const updateOps = [
+        // 1. Add course to user's enrolledCourses
+        User.findByIdAndUpdate(userId, { $push: { enrolledCourses: courseId } }),
+        // 2. Add user to course's studentsEnrolled
+        Course.findByIdAndUpdate(courseId, { $push: { studentsEnrolled: userId } }),
+        // 3. Create a new CourseProgress document
+        CourseProgress.create({
+            course: courseId,
+            user: userId,
+            completedLessons: [], // Start with empty array
+            completionPercentage: 0,
+        })
+    ];
 
-    user.enrolledCourses.push(courseId);
-    await user.save();
+    await Promise.all(updateOps);
 
-    return res.json({ success: true, message: "Enrolled successfully.", courseId });
+    return res.json({ success: true, message: "Enrolled successfully and progress tracking started.", courseId });
   } catch (err) {
     console.error("enrollCourse:", err);
     return res.status(500).json({ success: false, message: "Error enrolling in course." });
   }
 };
 
-module.exports = {enrollCourse};
+module.exports = { enrollCourse };

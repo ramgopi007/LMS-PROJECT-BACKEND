@@ -5,7 +5,7 @@ const cloudinary = require("../../config/cloudinary");
 const updateLesson = async (req, res) => {
   try {
     const { lessonId } = req.params;
-    const { title, description } = req.body;
+    const { title, description, duration, order } = req.body; // Added duration and order
 
     const lesson = await Lesson.findById(lessonId).populate("course");
     if (!lesson) {
@@ -28,6 +28,8 @@ const updateLesson = async (req, res) => {
 
     if (title) lesson.title = title;
     if (description) lesson.description = description;
+    if (duration) lesson.duration = Number(duration);
+    if (order) lesson.order = Number(order);
 
     await lesson.save();
 

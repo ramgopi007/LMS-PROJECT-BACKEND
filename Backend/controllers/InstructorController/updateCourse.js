@@ -4,23 +4,24 @@ const Course = require("../../models/Course");
 const updateCourse = async (req, res) => {
   try {
     const { id } = req.params; // course ID from URL
-    const { title, description, category, price } = req.body;
+    const { title, description, category, price ,thumbnail, status} = req.body;
 
     // 1️⃣ Find course and ensure instructor owns it
+    const updates = { title, description, category, price, thumbnail, status };
+    
+    // Clean up undefined values (important for update)
+    Object.keys(updates).forEach(key => updates[key] === undefined && delete updates[key]);
+
+
     const course = await Course.findOneAndUpdate(
       {
         _id: id,
         instructor: req.user._id, // only course owner can update
       },
+      updates, // Use dynamic updates object
       {
-        title,
-        description,
-        category,
-        price,
-      },
-      {
-        new: true,        // return updated course
-        runValidators: true, // apply schema validations
+        new: true,
+        runValidators: true,
       }
     );
 

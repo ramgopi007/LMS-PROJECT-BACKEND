@@ -1,28 +1,40 @@
 const Course = require("../../models/Course");
+const User = require("../../models/signUpSchema"); // Need User model for linking createdCourses
 
-// 🟩 1️⃣ Create a new course
 const createCourse = async (req, res) => {
   try {
-    const { title, description, category, price } = req.body;
+    const { title, description, category, price, thumbnail } = req.body; // Added thumbnail
 
     // Validation
-    if (!title || !description || !category) {
-      return res.status(400).json({ message: "All fields are required." });
+    if (!title || !description || !category || !thumbnail) { // Added thumbnail to check
+      return res.status(400).json({ message: "Required fields are missing: title, description, category, and thumbnail are required." });
     }
+    
+    // Ensure price is a number and non-negative
+    const coursePrice = Number(price) || 0;
 
     const course = new Course({
       title,
       description,
       category,
-      price,
+      price: coursePrice,
+      thumbnail, // New field
       instructor: req.user._id, // from instructorAuth middleware
+      status: "Draft", // Default status upon creation
     });
 
     await course.save();
 
+    // 🌟 New: Link the course back to the instructor's createdCourses array
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { $push: { createdCourses: course._id } },
+      { new: true }
+    );
+
     res.status(201).json({
       success: true,
-      message: "Course created successfully.",
+      message: "Course created successfully (Status: Draft).",
       course,
     });
   } catch (error) {
@@ -31,4 +43,4 @@ const createCourse = async (req, res) => {
   }
 };
 
-module.exports = {createCourse};
+module.exports = { createCourse };

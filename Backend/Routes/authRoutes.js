@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-/* const upload = require('../middlewares/multer'); */
 
 const { signup } = require('../controllers/authentication/signup');
 const { login } = require('../controllers/authentication/login');

@@ -1,10 +1,13 @@
 const mongoose = require("mongoose");
 const Course = require("../../models/Course");
+const Review = require("../../models/reviewSchema");
 
 const getCourseDetails = async (req, res) => {
   try {
     const { courseId } = req.params;
-
+    
+    const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+   
     if (!isValidObjectId(courseId))
       return res.status(400).json({ success: false, message: "Invalid course id." });
 

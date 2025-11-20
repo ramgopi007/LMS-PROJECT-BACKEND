@@ -4,7 +4,7 @@ const validator = require("validator");
 
 const signup = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, role } = req.body;
+    const { firstName, lastName, email, password, role ,} = req.body;
 
     // Validate fields
     if (!firstName || !lastName || !email || !password) {

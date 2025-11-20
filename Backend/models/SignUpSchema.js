@@ -39,6 +39,7 @@ const signUpSchema = new mongoose.Schema(
     },
     role: {
       type: String,
+      required:[true ,"Role is required"],
       enum: ["user", "instructor", "admin"],
       default: "user",
     },
@@ -54,12 +55,6 @@ const signUpSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-    // *** LMS-Specific Relationship Fields Added Below ***
-
-    /**
-     * Field to hold courses the user is currently taking (as a student)
-     * This field directly solves your 'StrictPopulateError' for 'enrolledCourses'
-     */
     enrolledCourses: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -67,9 +62,8 @@ const signUpSchema = new mongoose.Schema(
       },
     ],
 
-    /**
-     * Field to hold courses the user has created (as an instructor)
-     */
+   /*  Field to hold courses the user has created (as an instructor) */
+    
     createdCourses: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -92,6 +86,6 @@ const signUpSchema = new mongoose.Schema(
     timestamps: true, // Adds 'createdAt' and 'updatedAt' fields automatically
   }
 );
-// You can remove your manual 'createdAt' field if you use 'timestamps: true'
+
 
 module.exports = mongoose.model("User", signUpSchema);

@@ -13,7 +13,7 @@ const login = async (req, res) => {
     }
 
     // Find user
-   const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).send({ message: "Invalid email or password." });
     }
@@ -34,9 +34,12 @@ const login = async (req, res) => {
     // Store token in cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // set true in production
-      sameSite: "Lax",
+      secure: false,        // must be false for localhost
+      sameSite: "Lax",      // Lax is allowed in HTTP
+      path: "/",
+      maxAge: 60 * 60 * 1000
     });
+
 
     res.status(200).send({
       message: "Login successful",

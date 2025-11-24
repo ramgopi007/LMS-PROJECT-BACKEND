@@ -1,3 +1,4 @@
+const cors = require("cors");
 require('dotenv').config();
 const express = require('express');
 const Db = require('../config/DataBase');
@@ -8,6 +9,9 @@ app.use(cookieParser());
 const authRoutes = require('../Routes/authRoutes');
 const instructorRoutes = require('../Routes/instructorRoutes');
 const userRoutes = require('../Routes/userRoutes');
+
+app.use(cors())
+
 
 app.use('/lms/auth', authRoutes );
 

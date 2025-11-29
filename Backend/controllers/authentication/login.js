@@ -7,41 +7,42 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
+    // Check fields
     if (!email || !password) {
       return res.status(400).send({ message: "Email and password are required." });
     }
 
-    // Find user
-    const user = await User.findOne({ email }).select('+password');
+    // Check user exists
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res.status(401).send({ message: "Invalid email or password." });
     }
 
-    // Compare password
+    // Check password matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).send({ message: "Invalid email or password." });
     }
 
-    // Generate JWT (include role)
+    // Create JWT
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET || "your_jwt_secret_key",
       { expiresIn: "1h" }
     );
 
-    // Store token in cookie
+    // Set cookie (working for localhost)
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,        // must be false for localhost
-      sameSite: "Lax",      // Lax is allowed in HTTP
+      secure: false,
+      sameSite: "Lax",
       path: "/",
-      maxAge: 60 * 60 * 1000
+      maxAge: 60 * 60 * 1000,
     });
 
-
+    // Response
     res.status(200).send({
+      success: true,
       message: "Login successful",
       user: {
         id: user._id,

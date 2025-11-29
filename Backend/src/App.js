@@ -10,7 +10,10 @@ const authRoutes = require('../Routes/authRoutes');
 const instructorRoutes = require('../Routes/instructorRoutes');
 const userRoutes = require('../Routes/userRoutes');
 
-app.use(cors())
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true,
+}));
 
 
 app.use('/lms/auth', authRoutes );

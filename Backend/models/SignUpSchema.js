@@ -40,8 +40,8 @@ const signUpSchema = new mongoose.Schema(
     role: {
       type: String,
       required:[true ,"Role is required"],
-      enum: ["user", "instructor", "admin"],
-      default: "user",
+      enum: ["Student", "instructor", "admin"],
+      default: "Student",
     },
     profilePicture: {
       type: String,

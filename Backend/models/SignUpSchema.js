@@ -50,10 +50,12 @@ const signUpSchema = new mongoose.Schema(
     bio: {
       type: String,
       maxlength: [500, "Bio cannot exceed 500 characters"],
+      required:true,
     },
     skills: {
       type: [String],
       default: [],
+      required:[true,"Skills are required"],
     },
     enrolledCourses: [
       {

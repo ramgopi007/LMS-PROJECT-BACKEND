@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const upload = require("../middlewares/multer");
 
+const {getInstructorProfile} = require('../controllers/InstructorController/instructorProfile');
 const { instructorAuth } = require('../middlewares/instructorAuth');
 const { createCourse } = require('../controllers/InstructorController/createCourse');
 const { getMyCourses } = require('../controllers/InstructorController/getCourse');
@@ -12,6 +13,10 @@ const { addLesson } = require("../controllers/InstructorController/addLesson");
 const { updateLesson } = require("../controllers/InstructorController/updateLesson");
 const { deleteLesson } = require("../controllers/InstructorController/deleteLesson");
 const { getLessons } = require("../controllers/InstructorController/getLessons");
+
+
+// GET Instructor Dashboard Profile
+router.get("/me", instructorAuth, getInstructorProfile);
 
 // Create new course
 router.post("/courses", instructorAuth, createCourse);

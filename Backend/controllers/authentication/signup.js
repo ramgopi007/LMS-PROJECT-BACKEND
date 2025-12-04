@@ -4,10 +4,10 @@ const validator = require("validator");
 
 const signup = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, role ,} = req.body;
+    const { firstName, lastName, email, password, role ,bio , skills} = req.body;
 
     // Validate fields
-    if (!firstName || !lastName || !email || !password) {
+    if (!firstName || !lastName || !email || !password || !bio || !skills) {
       return res.status(400).send({ message: "All fields are required." });
     }
 
@@ -15,7 +15,7 @@ const signup = async (req, res) => {
       return res.status(400).send({ message: "Please provide a valid email." });
     }
 
-    if (!validator.isStrongPassword(password)) {
+    if (!validator.isStrongPassword(password)) {   
       return res.status(400).send({
         message:
           "Password must be strong (min 8 chars, uppercase, lowercase, number, symbol).",
@@ -39,6 +39,8 @@ const signup = async (req, res) => {
       email,
       password: hashedPassword,
       role: role || "Student", // Default to 'user' if not provided
+      bio:bio,
+      skills:skills
     });
 
     await newUser.save();

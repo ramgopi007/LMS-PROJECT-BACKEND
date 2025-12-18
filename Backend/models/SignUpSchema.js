@@ -39,7 +39,7 @@ const signUpSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      required:[true ,"Role is required"],
+      required: [true, "Role is required"],
       enum: ["Student", "instructor", "admin"],
       default: "Student",
     },
@@ -50,12 +50,16 @@ const signUpSchema = new mongoose.Schema(
     bio: {
       type: String,
       maxlength: [500, "Bio cannot exceed 500 characters"],
-      required:true,
+      required: true,
     },
     skills: {
       type: [String],
       default: [],
-      required:[true,"Skills are required"],
+      required: [true, "Skills are required"],
+    },
+    profilePicture: {
+      type: String,
+      default: "",
     },
     enrolledCourses: [
       {
@@ -64,8 +68,8 @@ const signUpSchema = new mongoose.Schema(
       },
     ],
 
-   /*  Field to hold courses the user has created (as an instructor) */
-    
+    /*  Field to hold courses the user has created (as an instructor) */
+
     createdCourses: [
       {
         type: mongoose.Schema.Types.ObjectId,

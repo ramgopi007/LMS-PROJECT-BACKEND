@@ -1,78 +1,82 @@
-// controllers/lesson/addLesson.js
 const fs = require("fs");
 const Lesson = require("../../models/Lesson");
 const Course = require("../../models/Course");
 const cloudinary = require("../../config/cloudinary");
 
 const addLesson = async (req, res) => {
-  // ... (try/catch block)
   try {
     const { courseId } = req.params;
-    const { title, description, duration, order } = req.body; // Added duration and order
+    const { title, description, duration, order } = req.body;
 
-    // 1️⃣ Validate required lesson fields
+    // 1. Validation
     if (!title || !description || !duration || !order) {
-      // ❌ Critical fix: Delete file on field validation error
-      if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ success: false, message: "Title, description, duration (seconds), and order (number) are required." });
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ success: false, message: "Title, description, duration, and order are required." });
     }
 
-    // 2️⃣ Validate video upload
     if (!req.file) {
-      return res.status(400).json({ success: false, message: "Please upload a video using field name 'lessonVideo'." });
+      return res.status(400).json({ success: false, message: "Please upload a video file." });
     }
 
-    // 3️⃣ Find course owned by logged-in instructor
-    const course = await Course.findOne({
-      _id: courseId,
-      instructor: req.user._id, // ✅ matches middleware
-    });
-
+    const course = await Course.findOne({ _id: courseId, instructor: req.user._id });
     if (!course) {
-      fs.unlinkSync(req.file.path); // Delete file if course not found
-      return res.status(404).json({ success: false, message: "Course not found or you are not the instructor." });
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(404).json({ success: false, message: "Course not found or unauthorized." });
     }
 
-    // 4️⃣ Upload video to Cloudinary (use dynamic folder based on course ID)
-    const uploadResult = await cloudinary.uploader.upload(req.file.path, {
-      resource_type: "video",
-      folder: `courseLessons/${courseId}`, // Better organization
-    });
+    // 2. 🔥 Promise Wrapper for Cloudinary (The Fix for the 'Chunkable' error)
+    const uploadToCloudinary = () => {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_large(
+          req.file.path,
+          {
+            resource_type: "video",
+            folder: `courseLessons/${courseId}`,
+            chunk_size: 6000000, // 6MB Chunks
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+      });
+    };
 
-    // 5️⃣ Create lesson document
+    console.log("🚀 Starting Cloudinary Upload...");
+    const uploadResult = await uploadToCloudinary();
+
+    // 3. Create Lesson
     const lesson = await Lesson.create({
       course: courseId,
       title,
       description,
-      duration: Number(duration), // Convert to Number
-      order: Number(order),       // Convert to Number
+      duration: Number(duration),
+      order: Number(order),
       videoUrl: uploadResult.secure_url,
-      // publicId: uploadResult.public_id, // Store public ID for deletion
+      publicId: uploadResult.public_id,
     });
 
-    // 🌟 New: Add the lesson to the course's lessons array
     course.lessons.push(lesson._id);
     await course.save();
 
-    // 6️⃣ Remove temp local file after successful Cloudinary upload
-    fs.unlinkSync(req.file.path);
+    // 4. Cleanup
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
 
     return res.status(201).json({
       success: true,
-      message: "Lesson added successfully and linked to course.",
+      message: "Lesson added successfully!",
       lesson,
     });
+
   } catch (error) {
-    // ... (rest of the error handling remains the same)
     console.error("❌ Add lesson error:", error);
     if (req.file && fs.existsSync(req.file.path)) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (unlinkError) {
-        console.error("❌ Failed to delete local file:", unlinkError);
-      }
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
     }
-    return res.status(500).json({ success: false, message: "Error adding lesson", error: error.message });
+    return res.status(500).json({ 
+      success: false, 
+      message: error.message.includes("large") ? "File too large for Cloudinary Free Tier (Max 100MB)" : "Error adding lesson" 
+    });
   }
 };
 

@@ -13,13 +13,16 @@ const { addLesson } = require("../controllers/InstructorController/addLesson");
 const { updateLesson } = require("../controllers/InstructorController/updateLesson");
 const { deleteLesson } = require("../controllers/InstructorController/deleteLesson");
 const { getLessons } = require("../controllers/InstructorController/getLessons");
-
+const {uploadInstructorProfilePicture} = require("../controllers/InstructorController/profilePick");
 
 // GET Instructor Dashboard Profile
 router.get("/me", instructorAuth, getInstructorProfile);
 
+//Post Instructor Profile Picture
+router.post("/upload-profile-picture",instructorAuth,upload.single("profile"),uploadInstructorProfilePicture);
+
 // Create new course
-router.post("/courses", instructorAuth, createCourse);
+router.post("/CreateCourse", instructorAuth, createCourse);
 
 // Get all courses created by the instructor
 router.get("/my-courses", instructorAuth, getMyCourses);

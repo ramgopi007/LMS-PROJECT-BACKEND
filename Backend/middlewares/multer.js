@@ -1,4 +1,3 @@
-// config/multer.js
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -18,19 +17,26 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowed = ["mp4", "mov", "avi", "mkv", "jpg", "jpeg", "png"];
+  // 1. Expanded allowed list to include images (for thumbnails) and videos (for lessons)
+  const allowedExtensions = [".mp4", ".mov", ".avi", ".mkv", ".webm", ".jpg", ".jpeg", ".png", ".webp"];
+  
+  const ext = path.extname(file.originalname).toLowerCase();
 
-  const ext = path.extname(file.originalname).substring(1).toLowerCase();
-
-  if (!allowed.includes(ext)) {
-    return cb(new Error("Only images or video files allowed!"));
+  // 2. Check if the extension is in our allowed list
+  if (allowedExtensions.includes(ext)) {
+    cb(null, true);
+  } else {
+    // 3. If it fails, we send a clear error
+    cb(new Error(`File type ${ext} is not supported. Please upload a valid Video or Image.`), false);
   }
-  cb(null, true);
 };
 
 const upload = multer({
   storage,
-  limits: { fileSize: 1000 * 1024 * 1024 }, // 1000MB
+  limits: { 
+    // Keeping it at 100MB for Cloudinary Free Tier safety
+    fileSize: 100 * 1024 * 1024 
+  },
   fileFilter,
 });
 

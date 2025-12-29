@@ -20,15 +20,15 @@ app.use(cors({
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
-// --- ADD THIS LINE TO FIX THE BROKEN IMAGE ---
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Serve static files - Pointing to the root 'uploads' folder
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 
 app.use('/lms/auth', authRoutes);
 
 app.use('/lms/instructor', instructorRoutes);
 
-app.use('/lms/user', userRoutes);
+app.use('/lms/student', userRoutes);
 
 // Connect to DB first, then start server
 Db()

@@ -14,6 +14,7 @@ const { updateLesson } = require("../controllers/InstructorController/updateLess
 const { deleteLesson } = require("../controllers/InstructorController/deleteLesson");
 const { getLessons } = require("../controllers/InstructorController/getLessons");
 const {uploadInstructorProfilePicture} = require("../controllers/InstructorController/profilePick");
+const {getLessonById} = require("../controllers/InstructorController/getLessonById");
 
 // GET Instructor Dashboard Profile
 router.get("/me", instructorAuth, getInstructorProfile);
@@ -45,5 +46,7 @@ router.delete("/lessons/:lessonId",instructorAuth,deleteLesson);
 // Get all lessons for a course
 router.get("/courses/:courseId/lessons",instructorAuth, getLessons);
 
+//Get Single Lesson for a course
+router.get("/lessons/:lessonId", instructorAuth, getLessonById);
 module.exports = router;
 

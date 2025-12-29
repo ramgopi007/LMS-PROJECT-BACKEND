@@ -1,30 +1,41 @@
 const mongoose = require("mongoose");
 const Course = require("../../models/Course");
-const Review = require("../../models/reviewSchema");
+const Review = require('../../models/reviewSchema');
 
 const getCourseDetails = async (req, res) => {
   try {
     const { courseId } = req.params;
-    
-    const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
-   
-    if (!isValidObjectId(courseId))
+    const userId = req.user?.userId; 
+
+    if (!mongoose.Types.ObjectId.isValid(courseId))
       return res.status(400).json({ success: false, message: "Invalid course id." });
 
     const course = await Course.findById(courseId)
       .populate("instructor", "firstName lastName profilePicture bio skills")
       .populate({
-        path: "lessons", // New: Populate all lessons
-        select: "title description order duration", // Select necessary fields
-        options: { sort: { order: 1 } } // Sort lessons by the new 'order' field
+        path: "lessons",
+        select: "title description order duration videoUrl", 
+        options: { sort: { order: 1 } }
       })
-      .populate("ratingAndReviews"); // New: Populate reviews (assuming a Review model)
+      .populate("ratingAndReviews");
 
     if (!course) return res.status(404).json({ success: false, message: "Course not found." });
-    return res.json({ success: true, data: course });
+
+    // ✨ BULLETPROOF CHECK: Convert both to strings
+    const isEnrolled = course.studentsEnrolled.some(
+        (id) => id.toString() === userId?.toString()
+    );
+
+    return res.json({ 
+        success: true, 
+        data: { 
+            ...course._doc, 
+            isEnrolled: !!isEnrolled // Forces it to be true or false
+        } 
+    });
 
   } catch (err) {
-    console.error("getCourseDetails:", err);
+    console.error("getCourseDetails Error:", err);
     return res.status(500).json({ success: false, message: "Error fetching course details." });
   }
 };

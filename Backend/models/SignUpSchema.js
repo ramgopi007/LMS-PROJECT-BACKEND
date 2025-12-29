@@ -45,11 +45,11 @@ const signUpSchema = new mongoose.Schema(
     },
     profilePicture: {
       type: String,
-      default: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+      default: "",
     },
     bio: {
       type: String,
-      maxlength: [500, "Bio cannot exceed 500 characters"],
+      maxlength: [5000, "Bio cannot exceed 5000 characters"],
       required: true,
     },
     skills: {

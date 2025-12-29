@@ -4,48 +4,28 @@ require("dotenv").config();
 
 const userAuth = async (req, res, next) => {
   try {
-    // 1️⃣ Get token from cookie or Authorization header (Bearer token)
-    const token =
-      (req.cookies && req.cookies.token) ||
-      (req.header("Authorization")
-        ? req.header("Authorization").replace("Bearer ", "")
-        : null);
+    // 1. Extract token (Check cookies first, then Authorization header)
+    const token = req.cookies?.token || req.header("Authorization")?.replace("Bearer ", "");
 
     if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Access denied. No token provided." });
+      return res.status(401).json({ success: false, message: "Access denied. No token provided." });
     }
 
-    // 2️⃣ Verify JWT token
+    // 2. Verify JWT
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid or expired token." });
+      return res.status(401).json({ success: false, message: "Invalid or expired token." });
     }
 
-    // decoded must contain userId
-    if (!decoded.userId) {
-      return res.status(401).json({
-        success: false,
-        message: "Token does not contain required user information.",
-      });
-    }
-
-    // 3️⃣ Fetch user from DB (exclude password)
+    // 3. Fetch full user to ensure they still exist and are active
     const user = await User.findById(decoded.userId).select("-password");
-
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found.",
-      });
+      return res.status(404).json({ success: false, message: "User not found." });
     }
 
-    // 4️⃣ Attach minimal safe user data on req.user
+    // 4. Attach data to req.user (Crucial for controllers)
     req.user = {
       userId: user._id.toString(),
       role: user.role,
@@ -54,15 +34,11 @@ const userAuth = async (req, res, next) => {
       lastName: user.lastName,
     };
 
-    next(); // allow request to continue
-
+    next();
   } catch (error) {
     console.error("userAuth Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error in authentication.",
-    });
+    return res.status(500).json({ success: false, message: "Server error in authentication." });
   }
 };
 
-module.exports = {userAuth};
+module.exports = { userAuth };
